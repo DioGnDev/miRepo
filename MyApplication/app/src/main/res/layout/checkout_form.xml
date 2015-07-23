@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/md_white_1000"
+    android:orientation="vertical"
+    android:padding="10dp">
+
+    <EditText
+        android:id="@+id/enama"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:hint="Nama" />
+
+    <EditText
+        android:id="@+id/etgl"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:hint="Tanggal" />
+
+    <Button
+        android:id="@+id/btcekot"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Checkout"/>
+
+    <Button
+        android:id="@+id/btbatal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Batal"/>
+
+
+
+
+</LinearLayout>
