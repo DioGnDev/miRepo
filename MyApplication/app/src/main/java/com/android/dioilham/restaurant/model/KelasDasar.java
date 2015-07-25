@@ -11,6 +11,7 @@ public class KelasDasar {
     private String jenis;
     private String harga;
     private int img;
+    private String gambar;
 
     public String getKode() {
         return kode;
@@ -59,4 +60,9 @@ public class KelasDasar {
     public void setJenis(String jenis) {
         this.jenis = jenis;
     }
+
+    public void setGambar(String gambar) {
+        this.gambar = gambar;
+    }
+
 }
