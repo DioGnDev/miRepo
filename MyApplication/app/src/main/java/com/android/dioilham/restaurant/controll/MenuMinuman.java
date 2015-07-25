@@ -6,24 +6,24 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
-import android.widget.Toast;
 
 import com.android.dioilham.restaurant.R;
-import com.android.dioilham.restaurant.helper.DatabaseHandler;
-import com.android.dioilham.restaurant.helper.TampilToast;
-import com.android.dioilham.restaurant.ui.Drink_Detail;
 import com.android.dioilham.restaurant.adapter.MinumanAdapter;
+import com.android.dioilham.restaurant.helper.DatabaseHandler;
 import com.android.dioilham.restaurant.helper.Koneksi;
+import com.android.dioilham.restaurant.helper.TampilToast;
 import com.android.dioilham.restaurant.model.Minuman;
 import com.android.dioilham.restaurant.parser.JSONParser;
 import com.android.dioilham.restaurant.ui.Keranjang;
+import com.baoyz.swipemenulistview.SwipeMenu;
+import com.baoyz.swipemenulistview.SwipeMenuCreator;
+import com.baoyz.swipemenulistview.SwipeMenuItem;
+import com.baoyz.swipemenulistview.SwipeMenuListView;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * Created by dioilham on 5/22/15.
  */
-public class MenuMinuman extends ActionBarActivity {
+public class MenuMinuman extends AppCompatActivity {
 
     private ProgressDialog pDialog;
 
@@ -46,7 +46,7 @@ public class MenuMinuman extends ActionBarActivity {
 
     //list
     List<Minuman> drink;
-    private ListView listdrink;
+    private SwipeMenuListView listdrink;
     MinumanAdapter adapter;
     TampilToast tos;
     DatabaseHandler db;
@@ -74,34 +74,88 @@ public class MenuMinuman extends ActionBarActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_daftar_minuman);
-        listdrink = (ListView) findViewById(R.id.list_minuman);
+        listdrink = (SwipeMenuListView) findViewById(R.id.list_minuman);
         callNewObjects();
+
+        SwipeMenuCreator creator = new SwipeMenuCreator() {
+            @Override
+            public void create(SwipeMenu swipeMenu) {
+                createMenu(swipeMenu);
+
+            }
+        };
+
+        listdrink.setMenuCreator(creator);
+
 
         // Loading products in Background Thread
         new LoadAllProducts().execute();
         Log.d("DRINKS", String.valueOf(drink.toArray()));
-        listdrink.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        listdrink.setOnMenuItemClickListener(new SwipeMenuListView.OnMenuItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                Minuman mimik = drink.get(position);
-                String kode = mimik.getKode();
-                String nama = mimik.getNama();
-                String jenis = mimik.getJenis();
-                String ket = mimik.getKeterangan();
-                String harga = mimik.getHarga();
-                String pesan = "Tambahkan " + "'" + nama + "'" + " ke Daftar Item Transaksi?";
-
-                tampilDialog(pesan,kode,nama,harga,jenis,ket);
-
-//                Intent intent = new Intent(MenuMinuman.this, Drink_Detail.class);
-//                intent.putExtra("name", nama);
-//                intent.putExtra("detail", ket);
-/*                intent.putExtra("price", harga);*/
-//                startActivity(intent);
+            public boolean onMenuItemClick(int position, SwipeMenu menu, int index) {
+                pilihMenuItem(position, menu, index);
+                return false;
             }
         });
     }
+
+    private void createMenu(SwipeMenu swipeMenu) {
+        SwipeMenuItem openItem = new SwipeMenuItem(getApplicationContext());
+        openItem.setBackground(R.color.md_pink_400);
+        openItem.setWidth(dp2px(90));
+        openItem.setTitle("Buka");
+        openItem.setTitleSize(18);
+        openItem.setTitleColor(getResources().getColor(R.color.white));
+        swipeMenu.addMenuItem(openItem);
+
+        SwipeMenuItem buyItem = new SwipeMenuItem(getApplicationContext());
+        buyItem.setBackground(R.color.md_cyan_300);
+        buyItem.setWidth(dp2px(90));
+        buyItem.setTitle("Beli");
+        buyItem.setTitleColor(getResources().getColor(R.color.white));
+        buyItem.setTitleSize(18);
+        swipeMenu.addMenuItem(buyItem);
+    }
+
+    private void pilihMenuItem(int position, SwipeMenu menu, int index) {
+        Minuman minum = drink.get(position);
+
+        switch (index){
+            case 0:
+                bukaDetail(minum);
+                break;
+
+            case 1:
+                beliItem(minum);
+                break;
+        }
+    }
+
+    private void beliItem(Minuman minum) {
+
+        String kode = minum.getKode();
+        String nama = minum.getNama();
+        String harga = minum.getHarga();
+        String jenis = minum.getJenis();
+        String keterangan = minum.getKeterangan();
+        String pesan = "Tambahkan " + "'" + nama + "'" + " ke Daftar Item Transaksi?";
+
+        tampilDialog(pesan, kode, nama, String.valueOf(harga), jenis, keterangan);
+    }
+
+    private void bukaDetail(Minuman minum) {
+
+        String kode = minum.getKode();
+        String nama = minum.getNama();
+        String harga = minum.getHarga();
+        String jenis = minum.getJenis();
+        String keterangan = minum.getKeterangan();
+        String pesan = "Tambahkan " + "'" + nama + "'" + " ke Daftar Item Transaksi?";
+
+        tampilDialog(pesan, kode, nama, String.valueOf(harga), jenis, keterangan);
+    }
+
 
     private void callNewObjects() {
         drink = new ArrayList<Minuman>();
@@ -248,5 +302,10 @@ public class MenuMinuman extends ActionBarActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private int dp2px(int dp) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
+                getResources().getDisplayMetrics());
     }
 }

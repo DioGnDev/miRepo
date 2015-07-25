@@ -9,12 +9,11 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import com.android.dioilham.restaurant.R;
@@ -25,7 +24,10 @@ import com.android.dioilham.restaurant.helper.TampilToast;
 import com.android.dioilham.restaurant.model.Makanan;
 import com.android.dioilham.restaurant.parser.JSONParser;
 import com.android.dioilham.restaurant.ui.Keranjang;
-//import com.android.dioilham.restaurant.ui.Keranjang;
+import com.baoyz.swipemenulistview.SwipeMenu;
+import com.baoyz.swipemenulistview.SwipeMenuCreator;
+import com.baoyz.swipemenulistview.SwipeMenuItem;
+import com.baoyz.swipemenulistview.SwipeMenuListView;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -35,6 +37,8 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+
+//import com.android.dioilham.restaurant.ui.Keranjang;
 
 public class MenuMakanan extends AppCompatActivity {
 
@@ -46,7 +50,7 @@ public class MenuMakanan extends AppCompatActivity {
 
     //list
     List<Makanan> food;
-    ListView listfood;
+    SwipeMenuListView listfood;
     private static String TAG_FOOD = "food";
     Koneksi koneksi;
     DatabaseHandler db;
@@ -63,6 +67,7 @@ public class MenuMakanan extends AppCompatActivity {
     private static final String TAG_HARGA = "harga_item";
     private static final String TAG_JENIS = "jenis_item";
     private static final String TAG_KETERANGAN = "keterangan_item";
+    private static final String TAG_GAMBAR = "gambar_item";
 
     // products JSONArray
     JSONArray makanan = null;
@@ -74,28 +79,89 @@ public class MenuMakanan extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_daftar_makanan);
         // Get listview
-        listfood = (ListView) findViewById(R.id.list_makanan);
+        listfood = (SwipeMenuListView) findViewById(R.id.list_makanan);
         callNewObjects();
+
+        SwipeMenuCreator creator = new SwipeMenuCreator() {
+            @Override
+            public void create(SwipeMenu swipeMenu) {
+                createMenu(swipeMenu);
+
+            }
+        };
+        listfood.setMenuCreator(creator);
 
         // Loading products in Background Thread
         new LoadAllProducts().execute();
-        listfood.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+        listfood.setOnMenuItemClickListener(new SwipeMenuListView.OnMenuItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                Makanan maem = food.get(position);
-                String kode = maem.getKode();
-                String nama = maem.getNama();
-                String harga = maem.getHarga();
-                String jenis = maem.getJenis();
-                String keterangan = maem.getKeterangan();
-                String pesan = "Tambahkan " + "'" + nama + "'" + " ke Daftar Item Transaksi?";
-
-                tampilDialog(pesan, kode, nama, String.valueOf(harga), jenis, keterangan);
-                //sweetDialog();
+            public boolean onMenuItemClick(int position, SwipeMenu menu, int index) {
+                pilihMenuItem(position, menu, index);
+                return false;
             }
         });
+
     }
+
+    private void createMenu(SwipeMenu swipeMenu) {
+        SwipeMenuItem openItem = new SwipeMenuItem(getApplicationContext());
+        openItem.setBackground(R.color.md_pink_400);
+        openItem.setWidth(dp2px(90));
+        openItem.setTitle("Buka");
+        openItem.setTitleSize(18);
+        openItem.setTitleColor(getResources().getColor(R.color.white));
+        swipeMenu.addMenuItem(openItem);
+
+        SwipeMenuItem buyItem = new SwipeMenuItem(getApplicationContext());
+        buyItem.setBackground(R.color.md_cyan_300);
+        buyItem.setWidth(dp2px(90));
+        buyItem.setTitle("Beli");
+        buyItem.setTitleColor(getResources().getColor(R.color.white));
+        buyItem.setTitleSize(18);
+        swipeMenu.addMenuItem(buyItem);
+    }
+
+    private void pilihMenuItem(int position, SwipeMenu menu, int index) {
+
+        Makanan maem = food.get(position);
+
+        switch (index){
+            case 0:
+                bukaDetail(maem);
+                break;
+
+            case 1:
+                beliItem(maem);
+                break;
+        }
+    }
+
+
+    private void beliItem(Makanan maem) {
+
+        String kode = maem.getKode();
+        String nama = maem.getNama();
+        String harga = maem.getHarga();
+        String jenis = maem.getJenis();
+        String keterangan = maem.getKeterangan();
+        String pesan = "Tambahkan " + "'" + nama + "'" + " ke Daftar Item Transaksi?";
+
+        tampilDialog(pesan, kode, nama, String.valueOf(harga), jenis, keterangan);
+    }
+
+    private void bukaDetail(Makanan maem) {
+
+        String kode = maem.getKode();
+        String nama = maem.getNama();
+        String harga = maem.getHarga();
+        String jenis = maem.getJenis();
+        String keterangan = maem.getKeterangan();
+        String pesan = "Tambahkan " + "'" + nama + "'" + " ke Daftar Item Transaksi?";
+
+        tampilDialog(pesan, kode, nama, String.valueOf(harga), jenis, keterangan);
+    }
+
 
     private void callNewObjects() {
         food = new ArrayList<Makanan>();
@@ -152,14 +218,6 @@ public class MenuMakanan extends AppCompatActivity {
         return result;
     }
 
-    /*private void sweetDialog(){
-        SweetAlertDialog sweetDialog = new SweetAlertDialog(this,SweetAlertDialog.WARNING_TYPE);
-                sweetDialog.setTitleText("Pesan ini..??");
-                sweetDialog.setContentText("Masukkan ke dalam keranjang");
-                sweetDialog.setConfirmText("pilih");
-                sweetDialog.show();
-    }*/
-
     class LoadAllProducts extends AsyncTask<String, String, String> {
 
         @Override
@@ -201,6 +259,7 @@ public class MenuMakanan extends AppCompatActivity {
                         String harga = object.getString(TAG_HARGA);
                         String jenis = object.getString(TAG_JENIS);
                         String keterangan = object.getString(TAG_KETERANGAN);
+                        String gambar = object.getString(TAG_GAMBAR);
 
                         Makanan makanan = new Makanan();
                         makanan.setKode(kode);
@@ -208,6 +267,7 @@ public class MenuMakanan extends AppCompatActivity {
                         makanan.setHarga(harga);
                         makanan.setJenis(jenis);
                         makanan.setKeterangan(keterangan);
+                        makanan.setGambar(gambar);
 
                         food.add(makanan);
 //                        Log.d("food : ", food.toString());
@@ -262,5 +322,10 @@ public class MenuMakanan extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private int dp2px(int dp) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
+                getResources().getDisplayMetrics());
     }
 }
